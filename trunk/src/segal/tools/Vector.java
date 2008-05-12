@@ -14,15 +14,36 @@ public class Vector {
         myZ = z;
     }
 
-    public double getMyX() {
+    public double getX() {
         return myX;
     }
 
-    public double getMyY() {
+    public double getY() {
         return myY;
     }
 
-    public double getMyZ() {
+    public double getZ() {
         return myZ;
     }
+
+    public Vector add(Vector vector) {
+        return new Vector(myX + vector.getX(), myY + vector.getY(), myZ + vector.getZ());
+    }
+
+    public Vector subtract(Vector vector) {
+        return new Vector(myX - vector.getX(), myY - vector.getY(), myZ - vector.getZ());
+    }
+
+    public Vector multiply(Vector vector) {
+        return new Vector(myX * vector.getX(), myY * vector.getY(), myZ * vector.getZ());
+    }
+
+    public Vector multiply(double value) {
+        return new Vector(myX * value, myY * value, myZ * value);
+    }
+
+    public String toString() {
+        return "[" + myX + ", " + myY + ", " + myZ + "]";
+    }
 }
+
