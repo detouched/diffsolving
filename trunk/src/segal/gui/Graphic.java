@@ -4,7 +4,9 @@ import segal.tools.Vector;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.util.Map;
 
 /**
@@ -16,51 +18,92 @@ public class Graphic extends JPanel {
     private int[] myY;
     private int[] myZ;
     private int[] myT;
+
+    private int myStartX;
+    private int myStartY;
+
     private Map<Double, Vector> myData;
 
-    private double myScaleFactor = 1;
+    private double myScaleFactor = 2;
     private int myDX;
     private int myDY;
 
-    public Graphic() {
+    public Graphic(double zoomFactor) {
+        myScaleFactor = zoomFactor;
+        JPanel leftPanel = new JPanel();
+        add(leftPanel, BorderLayout.WEST);
         setPreferredSize(new Dimension(800, 500));
-        addMouseWheelListener(new WheelListener());
         MyMouseListener a = new MyMouseListener();
         addMouseMotionListener(a);
         addMouseListener(a);
+        myStartX = 0;
+        myStartY = 250;
+
     }
 
     public void setData(Map<Double, Vector> graphData) {
         myData = graphData;
-        processData();
+        initialize();
         repaint();
     }
 
-    private void processData() {
-        if (myData == null) {
-            return;
-        }
+    private void initialize() {
         myX = new int[myData.size()];
         myY = new int[myData.size()];
         myZ = new int[myData.size()];
         myT = new int[myData.size()];
 
         int i = 0;
+
         for (Map.Entry<Double, Vector> entry : myData.entrySet()) {
-            myT[i] = myDX + (int) (i * myScaleFactor - getWidth() / 2);
-            myX[i] = myDY + (int) (myScaleFactor * entry.getValue().getX());
-            myY[i] = myDY + (int) (myScaleFactor * entry.getValue().getY());
-            myZ[i] = myDY + (int) (myScaleFactor * entry.getValue().getZ());
+            myT[i] = myStartX + (int) (myScaleFactor * i / 10);
+            Vector currentPoint = entry.getValue();
+            myX[i] = (int) (myStartY - (1 - currentPoint.getX()) * myScaleFactor * 100);
+            myY[i] = (int) (myStartY - (1 - currentPoint.getY()) * myScaleFactor * 100);
+            myZ[i] = (int) (myStartY - (1 - currentPoint.getZ()) * myScaleFactor * 100);
             i++;
         }
+    }
+
+    private void processData() {
+        if (myData == null) {
+            return;
+        }
+        int[] newX = new int[myData.size()];
+        int[] newY = new int[myData.size()];
+        int[] newZ = new int[myData.size()];
+        int[] newT = new int[myData.size()];
+
+        for (int i = 0; i < myData.size(); i++) {
+            newT[i] = myT[i] + myDX;
+            newX[i] = myX[i] + myDY;
+            newY[i] = myY[i] + myDY;
+            newZ[i] = myZ[i] + myDY;
+        }
+
+        myX = newX;
+        myY = newY;
+        myZ = newZ;
+        myT = newT;
+
+        //myStartX = myT[0];
+        //myStartY = myZ[0] - 2;
+    }
+
+    public void setZoom(double zoomFactor) {
+        myScaleFactor = zoomFactor;
+        initialize();
+        repaint();
     }
 
     public void paint(Graphics g) {
         super.paintComponent(g);
         Graphics2D image = (Graphics2D) g;
+        image.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         if (myT != null) {
-            image.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
             image.setColor(Color.RED);
+            //noinspection SuspiciousNameCombination
             image.drawPolyline(myT, myX, myT.length);
             image.setColor(Color.BLUE);
             image.drawPolyline(myT, myY, myT.length);
@@ -69,30 +112,20 @@ public class Graphic extends JPanel {
         }
     }
 
-    private final class WheelListener implements MouseWheelListener {
-        public void mouseWheelMoved(MouseWheelEvent e) {
-            myScaleFactor += e.getWheelRotation() * 0.6;
-            if (myScaleFactor < 1) {
-                myScaleFactor = 1;
-            } else if (myScaleFactor > 10) {
-                myScaleFactor = 10;
-            }
-            processData();
-            repaint();
-        }
-    }
-
     private final class MyMouseListener extends MouseAdapter implements MouseMotionListener {
         private int myX;
         private int myY;
 
         public void mouseDragged(MouseEvent e) {
-            myDX += e.getX() - myX;
-            myDY += e.getY() - myY;
 
-            myX = e.getX();
-            myY = e.getY();
+            myDX = (e.getX() - myX);
+            myDY = (e.getY() - myY);
 
+            myStartY = e.getY();
+            myStartX = e.getX();
+
+            myX = myStartX;
+            myY = myStartY;
             processData();
             repaint();
         }
@@ -101,8 +134,9 @@ public class Graphic extends JPanel {
         }
 
         public void mousePressed(MouseEvent e) {
-            myX = e.getX();
-            myY = e.getY();
+            myStartY = e.getY();
+            myStartX = e.getX();
+
         }
     }
 }

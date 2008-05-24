@@ -1,7 +1,7 @@
 package segal.adams;
 
+import segal.AbstractSolver;
 import segal.EquationSystem;
-import segal.ISolver;
 import segal.tools.Vector;
 
 import java.util.Collections;
@@ -11,7 +11,7 @@ import java.util.TreeMap;
 /**
  * User: danielpenkin
  */
-public class ComplicatedAdamsSolver implements ISolver {
+public class ComplicatedAdamsSolver extends AbstractSolver {
 
     private Vector variables = new Vector(START_X, START_Y, START_Z);
     private Vector newDerivatives;

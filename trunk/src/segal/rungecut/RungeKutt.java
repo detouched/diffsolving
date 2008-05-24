@@ -1,7 +1,7 @@
 package segal.rungecut;
 
+import segal.AbstractSolver;
 import segal.EquationSystem;
-import segal.ISolver;
 import segal.tools.Vector;
 
 import java.util.Collections;
@@ -11,7 +11,7 @@ import java.util.TreeMap;
 /**
  * User: sergeygindin
  */
-public class RungeKutt implements ISolver {
+public class RungeKutt extends AbstractSolver {
 
     private Vector variables = new Vector(START_X, START_Y, START_Z);
 
