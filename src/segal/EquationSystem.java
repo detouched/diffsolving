@@ -7,9 +7,9 @@ import segal.tools.Vector;
  */
 public class EquationSystem {
 
-    private static final double B = 13;
-    private static final double R = 15;
-    private static final double SIGMA = 10;
+    private static double B = 1.3;
+    private static double R = 1.5;
+    private static double SIGMA = 1.0;
 
     public static double getDX(Vector variables) {
         return SIGMA * (variables.getY() - variables.getX());
@@ -25,5 +25,29 @@ public class EquationSystem {
 
     public static Vector getDerivatives(Vector variables) {
         return new Vector(getDX(variables), getDY(variables), getDZ(variables));
+    }
+
+    public static void setB(double b) {
+        B = b;
+    }
+
+    public static void setR(double r) {
+        R = r;
+    }
+
+    public static void setSigma(double sigma) {
+        SIGMA = sigma;
+    }
+
+    public static double getB() {
+        return B;
+    }
+
+    public static double getR() {
+        return R;
+    }
+
+    public static double getSigma() {
+        return SIGMA;
     }
 }
