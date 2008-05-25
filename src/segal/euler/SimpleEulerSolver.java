@@ -22,8 +22,9 @@ public class SimpleEulerSolver extends AbstractSolver {
         double t = BEG;
         do {
             variables = variables.add(derivatives.multiply(DELTA));
-            myAndrewBannedThisName.put(t, variables);
             derivatives = EquationSystem.getDerivatives(variables);
+            myAndrewBannedThisName.put(t, variables);
+
             t += DELTA;
         } while (t < END);
         return Collections.unmodifiableMap(myAndrewBannedThisName);

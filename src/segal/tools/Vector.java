@@ -4,9 +4,10 @@ package segal.tools;
  * User: danielpenkin
  */
 public class Vector {
-    private final double myX;
-    private final double myY;
-    private final double myZ;
+    private double myX;
+    private double myY;
+    private double myZ;
+
 
     public Vector(double x, double y, double z) {
         myX = x;
@@ -40,6 +41,12 @@ public class Vector {
 
     public Vector multiply(double value) {
         return new Vector(myX * value, myY * value, myZ * value);
+    }
+
+    public void updateValues(double x, double y, double z) {
+        myX = x;
+        myZ = y;
+        myY = z;
     }
 
     public String toString() {
