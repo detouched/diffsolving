@@ -13,130 +13,151 @@ import java.util.Map;
  * User: danielpenkin
  */
 public class Graphic extends JPanel {
+    private final static int PLOT_HEIGHT = 500;
+    private final static int PLOT_WIDTH = 1000;
 
-    private int[] myX;
-    private int[] myY;
-    private int[] myZ;
-    private int[] myT;
+    private int[] funcX;
+    private int[] funcY;
+    private int[] funcZ;
+    private int[] coordOX;
 
-    private int myStartX;
-    private int myStartY;
+    private int coordStartX;
+    private int coordStartY;
 
     private Map<Double, Vector> myData;
 
-    private double myScaleFactor = 2;
+    private double scaleFactor = 2.0;
+    Vector averageValues = new Vector(0, 0, 0);
     private int myDX;
     private int myDY;
 
-    public Graphic(double zoomFactor) {
-        myScaleFactor = zoomFactor;
+
+    public Graphic(double scaleFactor) {
+        this.scaleFactor = scaleFactor;
         JPanel leftPanel = new JPanel();
         add(leftPanel, BorderLayout.WEST);
-        setPreferredSize(new Dimension(800, 500));
+        setPreferredSize(new Dimension(PLOT_WIDTH, PLOT_HEIGHT));
         MyMouseListener a = new MyMouseListener();
         addMouseMotionListener(a);
         addMouseListener(a);
-        myStartX = 0;
-        myStartY = 250;
-
+        coordStartX = 50;
+        coordStartY = PLOT_HEIGHT / 2;
     }
 
     public void setData(Map<Double, Vector> graphData) {
         myData = graphData;
-        initialize();
+        updateView();
         repaint();
     }
 
     private void initialize() {
-        myX = new int[myData.size()];
-        myY = new int[myData.size()];
-        myZ = new int[myData.size()];
-        myT = new int[myData.size()];
+        funcX = new int[myData.size()];
+        funcY = new int[myData.size()];
+        funcZ = new int[myData.size()];
+        coordOX = new int[myData.size()];
+    }
 
+
+    private void updateAverageValues() {
+        if (myData == null) {
+            return;
+        }
+        final int numberOfPoints = myData.size();
+
+        double averageX = 0;
+        double averageY = 0;
+        double averageZ = 0;
+        for (Map.Entry<Double, Vector> entry : myData.entrySet()) {
+            Vector currentPoint = entry.getValue();
+            averageX += currentPoint.getX();
+            averageY += currentPoint.getY();
+            averageZ += currentPoint.getZ();
+        }
+
+        averageX /= numberOfPoints * 1.0;
+        averageY /= numberOfPoints * 1.0;
+        averageZ /= numberOfPoints * 1.0;
+
+        averageValues.updateValues(averageX, averageY, averageZ);
+
+    }
+
+    private void calculateCoordinates() {
         int i = 0;
 
         for (Map.Entry<Double, Vector> entry : myData.entrySet()) {
-            myT[i] = myStartX + (int) (myScaleFactor * i / 10);
             Vector currentPoint = entry.getValue();
-            myX[i] = (int) (myStartY - (1 - currentPoint.getX()) * myScaleFactor * 100);
-            myY[i] = (int) (myStartY - (1 - currentPoint.getY()) * myScaleFactor * 100);
-            myZ[i] = (int) (myStartY - (1 - currentPoint.getZ()) * myScaleFactor * 100);
+
+            coordOX[i] = (int) (coordStartX + myDX + getXscaling(i));
+            Vector tempCoords = new Vector(currentPoint.getX(), currentPoint.getY(), currentPoint.getZ());
+            Vector relativeCoords = tempCoords.subtract(averageValues);
+            funcX[i] = (int) (coordStartY + myDY + relativeCoords.getX() * scaleFactor);
+            funcY[i] = (int) (coordStartY + myDY + relativeCoords.getY() * scaleFactor);
+            funcZ[i] = (int) (coordStartY + myDY + relativeCoords.getZ() * scaleFactor);
             i++;
         }
     }
 
-    private void processData() {
-        if (myData == null) {
-            return;
-        }
-        int[] newX = new int[myData.size()];
-        int[] newY = new int[myData.size()];
-        int[] newZ = new int[myData.size()];
-        int[] newT = new int[myData.size()];
+    private double getXscaling(int i) {
+        double halfSize = 1.0 * PLOT_WIDTH / 2.0;
+        double plusAdin = (i - halfSize) / (halfSize);
 
-        for (int i = 0; i < myData.size(); i++) {
-            newT[i] = myT[i] + myDX;
-            newX[i] = myX[i] + myDY;
-            newY[i] = myY[i] + myDY;
-            newZ[i] = myZ[i] + myDY;
-        }
-
-        myX = newX;
-        myY = newY;
-        myZ = newZ;
-        myT = newT;
-
-        //myStartX = myT[0];
-        //myStartY = myZ[0] - 2;
+        double linear = (1.0 * i * PLOT_WIDTH / myData.size());
+        return linear + 10 * scaleFactor * plusAdin;
     }
 
-    public void setZoom(double zoomFactor) {
-        myScaleFactor = zoomFactor;
-        initialize();
+    public void setScaleFactor(double scaleFactor) {
+        this.scaleFactor = scaleFactor;
+        updateView();
         repaint();
+    }
+
+    private void updateView() {
+        initialize();
+        updateAverageValues();
+        calculateCoordinates();
     }
 
     public void paint(Graphics g) {
         super.paintComponent(g);
         Graphics2D image = (Graphics2D) g;
         image.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        if (myT != null) {
+        if (coordOX != null) {
 
             image.setColor(Color.RED);
             //noinspection SuspiciousNameCombination
-            image.drawPolyline(myT, myX, myT.length);
+            image.drawPolyline(coordOX, funcX, coordOX.length);
             image.setColor(Color.BLUE);
-            image.drawPolyline(myT, myY, myT.length);
+            image.drawPolyline(coordOX, funcY, coordOX.length);
             image.setColor(Color.GREEN);
-            image.drawPolyline(myT, myZ, myT.length);
+            image.drawPolyline(coordOX, funcZ, coordOX.length);
         }
     }
 
     private final class MyMouseListener extends MouseAdapter implements MouseMotionListener {
+
         private int myX;
         private int myY;
 
         public void mouseDragged(MouseEvent e) {
-
             myDX = (e.getX() - myX);
             myDY = (e.getY() - myY);
-
-            myStartY = e.getY();
-            myStartX = e.getX();
-
-            myX = myStartX;
-            myY = myStartY;
-            processData();
+            updateView();
             repaint();
         }
 
-        public void mouseMoved(MouseEvent e) {
+        public void mousePressed(MouseEvent e) {
+            myX = e.getX();
+            myY = e.getY();
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         }
 
-        public void mousePressed(MouseEvent e) {
-            myStartY = e.getY();
-            myStartX = e.getX();
-
+        public void mouseReleased(MouseEvent e) {
+            setCursor(Cursor.getDefaultCursor());
+            coordStartY += myDY;
+            coordStartX += myDX;
+            myDY = 0;
+            myDX = 0;
         }
     }
 }
