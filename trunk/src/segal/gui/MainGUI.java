@@ -104,7 +104,6 @@ public class MainGUI extends JFrame {
 
         getContentPane().add(wholePanel);
         pack();
-
     }
 
     private void addListenerToSliders(ChangeListener listener, JSlider... sliders) {
@@ -148,9 +147,7 @@ public class MainGUI extends JFrame {
     }
 
     public String getSliderTrueValue(JSlider slider, double podgon) {
-        String textValue = String.valueOf(slider.getValue() / podgon);
-
-        return textValue;
+        return String.valueOf(slider.getValue() / podgon);
 
     }
 

@@ -159,5 +159,7 @@ public class Graphic extends JPanel {
             myDY = 0;
             myDX = 0;
         }
+
+        public void mouseMoved(MouseEvent e) {}
     }
 }
